@@ -568,8 +568,9 @@ table.grid{width:100%;min-width:1080px;border-collapse:collapse}
 .modal__head{display:flex;align-items:center;gap:11px;padding:18px 20px;
   background:var(--bg-primary);border-bottom:1px solid var(--stroke)}
 .modal__title{font-size:20px;line-height:28px;font-weight:600;flex:1}
-.modal__x{width:32px;height:32px;border-radius:var(--radius);border:none;background:none;
+.modal__x{position:relative;width:32px;height:32px;border-radius:var(--radius);border:none;background:none;
   color:var(--text);display:grid;place-items:center}
+.modal__x::after{content:"";position:absolute;inset:-6px}
 .modal__x:hover{background:var(--interactive);color:var(--brand-deep)}
 .modal__body{padding:20px;overflow-y:auto;flex:1 1 auto;display:flex;flex-direction:column;gap:40px}
 .modal__foot{display:flex;align-items:center;gap:12px;padding:0 20px}
@@ -629,8 +630,25 @@ table.grid{width:100%;min-width:1080px;border-collapse:collapse}
    pages themselves. The rail on the right only reports what that adds up to. */
 /* The dialog is now a document workspace, so it takes the width one needs:
    the page has to be readable, not merely recognisable. */
-.modal--wide{max-width:min(1640px, 95vw)}
+.modal--wide{max-width:min(1640px, 95vw);padding-bottom:0}
+/* Reading, and detection failed. Both hold one sentence and one button, and
+   both were inheriting the document workspace's width — 1615px of dialog
+   around a single line reads as a page that failed to load rather than as a
+   state. They take the width of the dialog they actually are. */
+.modal--wide.is-bare{max-width:742px}
+/* The upload dialog's body carries 20px of its own padding, so its footer can
+   sit on bare white and still look placed. This one's panes run edge to edge,
+   which left the buttons with nothing above them at all — the document and the
+   rail ran flush into Confirm, and the dialog stopped rather than ended. The
+   actions get a bar of their own: a rule, a ground, and real air either side. */
+.modal--wide .modal__head{padding-left:24px;padding-right:24px}
+.modal--wide .modal__foot{padding:14px 24px;border-top:1px solid var(--stroke);
+  background:var(--bg-primary);border-radius:0 0 var(--radius) var(--radius)}
 .split-body{flex:1 1 auto;min-height:0;overflow:hidden;display:flex;padding:0}
+
+/* One 24px gutter for the whole dialog. Head, viewer bar, rail and footer each
+   used to set their own (20 / 24 / 20 / 20), so the title and the file chip
+   below it — same column, 70px apart — did not share a left edge. */
 
 /* ------------------------------------------------------------ the viewer
    The document at a size you can actually read, scrolling as one run. Every
@@ -645,23 +663,33 @@ table.grid{width:100%;min-width:1080px;border-collapse:collapse}
 .spv__name{font-size:14px;line-height:20px;font-weight:700;color:var(--text);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .spv__sub{font-size:12px;line-height:18px;color:var(--text-muted)}
-.zoom{margin-left:auto;flex:none;display:flex;align-items:center;gap:4px}
-.zoom__b{width:34px;height:34px;display:grid;place-items:center;border-radius:var(--radius);
-  border:1px solid var(--brand-soft);background:var(--surface);color:var(--brand-deep);
+/* Three controls that act as one, so they are drawn as one. They used to be two
+   bordered boxes with a borderless button between them, sitting 12px from a
+   properly grouped segmented switch — one toolbar speaking two grouping
+   languages. This is the .seg track, at the same 2px padding and 28px height,
+   so Read/Overview and −/Fit/+ read as siblings. */
+.zoom{margin-left:12px;flex:none;display:inline-flex;align-items:center;gap:2px;
+  padding:2px;border-radius:var(--radius);background:var(--bg-primary);
+  border:1px solid var(--stroke)}
+.zoom__b{position:relative;width:42px;height:28px;display:grid;place-items:center;
+  border:none;border-radius:4px;background:none;color:var(--brand-deep);
   transition:background var(--dur) var(--ease)}
-.zoom__b:hover:not(:disabled){background:var(--bg-secondary)}
-.zoom__b:disabled{opacity:.4;color:var(--text-muted);border-color:var(--stroke)}
-.zoom__n{min-width:58px;height:34px;padding:0 8px;border:none;border-radius:var(--radius);
-  background:none;text-align:center;font-size:13px;line-height:20px;font-weight:600;
-  color:var(--text);font-variant-numeric:tabular-nums;
+.zoom__b:hover:not(:disabled){background:var(--surface);box-shadow:var(--e1)}
+.zoom__b:disabled{opacity:.4;color:var(--text-muted)}
+.zoom__n{position:relative;min-width:54px;height:28px;padding:0 8px;border:none;border-radius:4px;
+  background:none;text-align:center;font-size:13px;line-height:1;font-weight:600;
+  color:var(--text-muted);font-variant-numeric:tabular-nums;
   transition:background var(--dur) var(--ease),color var(--dur) var(--ease)}
-.zoom__n:hover{background:var(--bg-primary)}
-.zoom__n.is-on{color:var(--brand-deep)}
+.zoom__n:hover{color:var(--text)}
+.zoom__n.is-on{background:var(--surface);color:var(--text);box-shadow:var(--e1)}
+/* the control keeps its 28px look and reaches 44px of hit area, so a page
+   control is not a 26px target on a touch screen */
+.zoom__b::after,.zoom__n::after,.seg__b::after{content:"";position:absolute;inset:-8px -3px}
 
 .spv__scroll{flex:1 1 auto;overflow:auto;padding:24px}
 .vpage{width:var(--pw,620px);margin:0 auto 26px;display:flex;flex-direction:column;gap:8px}
 .vpage__head{display:flex;align-items:center;gap:10px;min-height:26px}
-.vpage__no{font-size:12px;line-height:16px;color:var(--text-muted);font-variant-numeric:tabular-nums}
+.vpage__no{font-size:12px;line-height:16px;color:var(--text-body);font-variant-numeric:tabular-nums}
 /* the index is the signature: the same numeral appears here, in the rail and
    in the overview, so the three panes are never in doubt about each other */
 .vpage__i{display:inline-grid;place-items:center;min-width:26px;height:22px;padding:0 7px;
@@ -669,11 +697,15 @@ table.grid{width:100%;min-width:1080px;border-collapse:collapse}
   font-size:13px;line-height:1;font-weight:700;letter-spacing:-.02em}
 .vpage.is-sel .vpage__i{background:var(--brand-deep);color:var(--on-brand)}
 .vpage__flag{font-size:11px;line-height:16px;font-weight:600;color:var(--warning)}
-.vpage__flag.is-out{color:var(--text-muted)}
-.vpage__b{margin-left:auto;height:26px;padding:0 9px;display:inline-flex;align-items:center;gap:6px;
-  border-radius:5px;border:1px solid transparent;background:none;color:var(--text-muted);
+.vpage__flag.is-out{color:var(--text-body)}
+/* the only control on the page strip, and it was a 26px target. The strip has
+   no room to grow to 44, so the hit area reaches past the visible chip. */
+.vpage__b{position:relative;margin-left:auto;height:28px;padding:0 10px;display:inline-flex;
+  align-items:center;gap:6px;
+  border-radius:5px;border:1px solid transparent;background:none;color:var(--text-body);
   font-size:12px;line-height:1;font-weight:600;
   transition:background var(--dur) var(--ease),color var(--dur) var(--ease),border-color var(--dur) var(--ease)}
+.vpage__b::after{content:"";position:absolute;inset:-9px -4px}
 .vpage__b:hover{background:var(--surface);border-color:var(--card-stroke);color:var(--danger)}
 .vpage.is-excluded .vpage__b:hover{color:var(--brand-deep)}
 .vpage__paper{position:relative;width:100%;background:var(--surface);border:none;
@@ -700,11 +732,12 @@ table.grid{width:100%;min-width:1080px;border-collapse:collapse}
    plus its gutter, so it stays aligned with the paper at any zoom. */
 .sbar{display:flex;align-items:center;gap:12px;width:var(--pw,620px);margin:0 auto 26px}
 .sbar__ln{flex:1 1 auto;height:1px;background:#dcdce6;transition:background var(--dur) var(--ease)}
-.sbar__b{flex:none;display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 15px;
+.sbar__b{position:relative;flex:none;display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 15px;
   border-radius:8px;border:1px solid var(--stroke);background:var(--surface);
   font-size:13px;line-height:1;color:var(--text);white-space:nowrap;
   transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),
              color var(--dur) var(--ease)}
+.sbar__b::after{content:"";position:absolute;inset:-5px 0}
 .sbar__b b{font-weight:700}
 .sbar__n{color:var(--text-muted);font-weight:400}
 .sbar__b:hover{border-color:var(--brand-soft);background:var(--bg-secondary)}
@@ -731,19 +764,24 @@ table.grid{width:100%;min-width:1080px;border-collapse:collapse}
    people reading it came from Tally. */
 .rail2{flex:none;width:460px;display:flex;flex-direction:column;background:var(--surface);
   border-left:1px solid var(--stroke)}
-.rail2__top{flex:none;padding:20px;border-bottom:1px solid var(--stroke);
+.rail2__top{flex:none;padding:24px;border-bottom:1px solid var(--stroke);
   display:flex;flex-direction:column;gap:16px}
 .rail2__h{display:flex;align-items:center;gap:10px}
 .rail2__k{font-size:11px;line-height:16px;font-weight:700;letter-spacing:.07em;
   text-transform:uppercase;color:var(--text-muted)}
-.rail2__pill{margin-left:auto;display:inline-flex;align-items:center;gap:6px;
-  padding:4px 10px;border-radius:99px;background:var(--chrome);color:var(--chrome-text);
-  font-size:11px;line-height:16px;font-weight:600}
-.rail2__pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--chrome-muted)}
-.rail2__t{font-size:18px;line-height:26px;font-weight:700;color:var(--text)}
+/* Provenance, not a fourth colour family. It was set in --chrome, the app's
+   navbar navy, which made an 11px caption the heaviest ink in the rail and
+   out-weighed the headline underneath it. It also carried a grey dot that
+   reported nothing. Indigo-soft says "AIA did this" without shouting. */
+.rail2__pill{margin-left:auto;display:inline-flex;align-items:center;
+  padding:3px 9px;border-radius:99px;background:var(--interactive);color:var(--brand-deep);
+  font-size:11px;line-height:16px;font-weight:700}
+/* the count is what the rail is for, so it leads. At 18px it tied with the
+   20px dialog title 90px above it and the two read as competing headlines. */
+.rail2__t{font-size:22px;line-height:30px;font-weight:700;color:var(--text);letter-spacing:-.01em}
 .rail2__row{display:flex;gap:12px}
 .fld{display:flex;flex-direction:column;gap:5px}
-.fld__k{font-size:10px;line-height:14px;font-weight:700;letter-spacing:.09em;
+.fld__k{font-size:11px;line-height:15px;font-weight:700;letter-spacing:.09em;
   text-transform:uppercase;color:var(--text-muted)}
 .fld__i{height:34px;padding:0 12px;border-radius:var(--radius);
   border:1px solid var(--brand-soft);background:var(--surface);color:var(--text);
@@ -752,15 +790,20 @@ table.grid{width:100%;min-width:1080px;border-collapse:collapse}
 /* Naming is set once a packet; the list is the work. So the controls fold
    away behind the one line that states their result, and the space goes to
    the invoices. */
+/* A filled box with a chevron on its right edge is a select, and this is a
+   disclosure — it opens two fields, it does not offer a list. The chevron moves
+   to the left where a disclosure's marker belongs, and the row loses the field
+   fill. The line also carried the most important string in the block at 11px,
+   the smallest type in the dialog; a filename someone has to check is 12px. */
 .naming{border:1px solid var(--stroke);border-radius:var(--radius);overflow:hidden}
-.naming__b{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;
-  background:var(--bg-primary);border:none;text-align:left;
+.naming__b{position:relative;display:flex;align-items:center;gap:8px;width:100%;padding:13px 12px;
+  background:var(--surface);border:none;text-align:left;
   transition:background var(--dur) var(--ease)}
-.naming__b:hover{background:var(--interactive)}
-.naming__t{flex:1 1 auto;min-width:0;font-size:11px;line-height:17px;color:var(--text-muted);
+.naming__b:hover{background:var(--bg-primary)}
+.naming__t{flex:1 1 auto;min-width:0;font-size:12px;line-height:18px;color:var(--text-muted);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .naming__t strong{color:var(--text-body);font-weight:700}
-.naming__c{flex:none;color:var(--text-muted);transition:transform .2s var(--ease)}
+.naming__c{order:-1;flex:none;color:var(--text-muted);transition:transform .2s var(--ease)}
 .naming__b[aria-expanded="true"] .naming__c{transform:rotate(180deg)}
 .naming__body{display:flex;flex-direction:column;gap:12px;padding:12px;
   border-top:1px solid var(--stroke);background:var(--surface)}
@@ -771,7 +814,7 @@ table.grid{width:100%;min-width:1080px;border-collapse:collapse}
 .rail2__list{flex:1 1 auto;overflow-y:auto;scrollbar-gutter:stable;padding:0 0 24px}
 /* the two states of the queue, named and counted */
 .grp{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;
-  padding:16px 20px 8px;background:var(--surface);box-shadow:0 1px 0 var(--stroke);
+  padding:16px 24px 8px;background:var(--surface);box-shadow:0 1px 0 var(--stroke);
   font-size:11px;line-height:16px;font-weight:700;letter-spacing:.07em;
   text-transform:uppercase;color:var(--text-muted)}
 .grp__n{margin-left:auto;min-width:20px;height:18px;padding:0 6px;border-radius:99px;
@@ -781,23 +824,45 @@ table.grid{width:100%;min-width:1080px;border-collapse:collapse}
 .grp--ask{color:var(--warning)}
 .grp--ask .grp__n{color:var(--warning)}
 
-/* one invoice, one line, until it is opened */
-.irow{border-bottom:1px solid var(--stroke)}
-.irow__hit{display:grid;grid-template-columns:26px 40px minmax(0,1fr) auto;
-  align-items:center;gap:12px;width:100%;padding:12px 20px;
+/* One invoice, one row, until it is opened.
+
+   The index, the page range, the supplier and the number each used to hold a
+   column of their own, which left the supplier about 220px — so four invoices
+   from one supplier came out as four identical rows ending in the same
+   ellipsis, and the only thing telling them apart was the number at the far
+   edge. The supplier is what is being checked, so it now takes the whole
+   width, and the two facts that qualify it sit on a second line under it. */
+.irow{position:relative}
+/* the rule starts at the text rather than at the container edge — eighteen
+   full-bleed hairlines stacked up read as a table this list is not */
+.irow::after{content:"";position:absolute;left:62px;right:24px;bottom:0;height:1px;
+  background:var(--stroke)}
+.irow:last-child::after{display:none}
+.irow__hit{display:grid;grid-template-columns:26px minmax(0,1fr) 14px;
+  align-items:center;gap:12px;width:100%;padding:11px 24px;
   background:none;border:none;text-align:left;
   transition:background var(--dur) var(--ease)}
 .irow__hit:hover{background:var(--bg-primary)}
-.irow__i{font-size:15px;line-height:20px;font-weight:700;color:var(--text-muted);
-  letter-spacing:-.02em}
-.irow__p{font-size:12px;line-height:16px;color:var(--text-muted)}
-.irow__v{font-size:13px;line-height:18px;color:var(--text);
+/* the ordinal is not the news. It keeps the tabular figures that tie it to the
+   page and the overview, and steps back a weight to let the name lead. */
+.irow__i{align-self:start;font-size:13px;line-height:20px;font-weight:700;
+  color:var(--text-muted);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.irow__body{display:flex;flex-direction:column;gap:2px;min-width:0}
+.irow__v{font-size:14px;line-height:20px;font-weight:600;color:var(--text);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.irow__v.is-none{color:var(--text-muted)}
-.irow__r{font-size:12px;line-height:16px;color:var(--text-muted);white-space:nowrap;
-  max-width:96px;overflow:hidden;text-overflow:ellipsis}
-.irow__c{color:var(--text-muted);transition:transform .2s var(--ease)}
-.irow.is-open .irow__c{transform:rotate(180deg)}
+.irow__v.is-none{font-weight:400;color:var(--text-muted)}
+.irow__meta{display:flex;align-items:center;gap:6px;min-width:0;
+  font-size:12px;line-height:16px;color:var(--text-muted)}
+.irow__r{color:var(--text-body);font-weight:600;font-variant-numeric:tabular-nums;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.irow__dot{flex:none;color:#8e8e99}
+.irow__p{flex:none}
+/* the affordance stays, at a weight that does not put eighteen dark marks down
+   the right edge of the rail */
+.irow__c{color:var(--text-muted);opacity:.38;
+  transition:transform .2s var(--ease),opacity var(--dur) var(--ease)}
+.irow__hit:hover .irow__c{opacity:1}
+.irow.is-open .irow__c{opacity:1;transform:rotate(180deg)}
 /* an opened row is one object: the line and its editor share a ground and an
    edge, instead of the editor floating under a rule that stopped short */
 .irow.is-open{background:var(--bg-primary);box-shadow:inset 3px 0 0 var(--brand-deep)}
@@ -806,8 +871,7 @@ table.grid{width:100%;min-width:1080px;border-collapse:collapse}
 .irow.is-sel .irow__i{color:var(--brand-deep)}
 /* an invoice waiting on a person: amber, and it says which field is missing */
 .irow.is-ask .irow__i{color:var(--warning)}
-.irow__a{font-size:11px;line-height:16px;font-weight:600;color:var(--warning);white-space:nowrap}
-.irow__end{display:inline-flex;align-items:center;gap:8px}
+.irow__a{flex:none;font-weight:700;color:var(--warning);white-space:nowrap}
 /* nothing in this rail may push it sideways — a horizontal scrollbar under a
    list of eighteen rows is a layout admitting defeat */
 .rail2__list{overflow-x:hidden}
@@ -815,13 +879,13 @@ table.grid{width:100%;min-width:1080px;border-collapse:collapse}
 /* opened: the two fields that name the file, and what it will be called */
 /* the opened editor belongs to its row, so it is indented past the index
    column and carries a rule back to it rather than floating free */
-.iedit{padding:0 20px 16px;display:flex;flex-direction:column;gap:12px}
+.iedit{padding:0 24px 16px;display:flex;flex-direction:column;gap:12px}
 /* two fields side by side: the rail is 420px wide and stacking them made an
    opened row 211px tall against a 42px closed one, which made the list lurch */
 .iedit__fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .iedit__file{display:flex;align-items:baseline;gap:8px;font-size:12px;line-height:18px;
   color:var(--brand-deep);word-break:break-all}
-.iedit__lk{flex:none;font-size:10px;font-weight:700;letter-spacing:.09em;
+.iedit__lk{flex:none;font-size:11px;font-weight:700;letter-spacing:.09em;
   text-transform:uppercase;color:var(--text-muted)}
 .iedit__note{font-size:11px;line-height:17px;color:var(--text-muted)}
 /* a rule, not another box — this already sits inside a row inside a rail, and
@@ -830,6 +894,8 @@ table.grid{width:100%;min-width:1080px;border-collapse:collapse}
 .iask__q{font-size:12px;line-height:18px;color:var(--text-body)}
 .iask__q strong{color:var(--warning);font-weight:700}
 .iask__acts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+.iask__acts .btn{position:relative}
+.iask__acts .btn::after{content:"";position:absolute;inset:-9px -2px}
 
 /* ------------------------------------------------------------- overview
    The grouping is what is being checked, so the overview draws the grouping:
@@ -838,47 +904,150 @@ table.grid{width:100%;min-width:1080px;border-collapse:collapse}
 /* A band per invoice, each only as wide as the pages it holds, flowing as a
    sheet. Full-width bands made the overview a longer scroll than the reader,
    which defeated the one thing it exists to do: show the whole packet at once. */
-.ov{display:flex;flex-wrap:wrap;align-content:flex-start;gap:12px}
-.ovg{width:fit-content;max-width:100%;border:1px solid var(--card-stroke);
-  border-radius:var(--radius-card);background:var(--surface);padding:10px;
-  transition:border-color var(--dur) var(--ease)}
+/* The sheet is a grid, not a flow. Cards used to be width:fit-content, so each
+   one was as wide as its supplier's name while the page inside it stayed a
+   fixed 136px — which stranded every thumbnail at the left of a half-empty
+   card and left the sheet ragged down both edges. Equal columns take the
+   width decision away from the content, and everything then centres on a
+   column that is the same for every invoice. */
+.ov{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));
+  gap:14px;align-items:stretch}
+.ovg{display:flex;flex-direction:column;align-items:center;gap:12px;
+  border:1px solid var(--card-stroke);border-radius:var(--radius-card);
+  background:var(--surface);padding:16px 14px;
+  transition:border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.ovg:hover{box-shadow:var(--e1)}
 .ovg.is-ask{border-color:var(--warning-edge);background:var(--warning-wash)}
+/* the tray for pages no invoice claims — dashed, because it is a holding
+   place rather than a thing being created */
+.ovg--out{border-style:dashed;background:none}
+.ovg__k{font-size:11px;line-height:16px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--text-muted);text-align:center}
 .ovg.is-sel{border-color:var(--brand-deep);box-shadow:0 0 0 1px var(--brand-deep)}
-.ovg__h{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
-.ovg__i{font-size:15px;line-height:20px;font-weight:700;color:var(--text-muted);letter-spacing:-.02em}
-.ovg.is-ask .ovg__i{color:var(--warning)}
-/* width:0 + min-width:100% keeps the vendor name out of the band's intrinsic
-   width, so a band is sized by the pages it holds rather than by how long its
-   supplier is called. Without it one long name made every band 330px wide and
-   only three fitted per row. */
-.ovg__v{order:3;flex-basis:100%;width:0;min-width:100%;margin-top:7px;
-  font-size:11px;line-height:15px;color:var(--text-body);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ovg__r{font-size:12px;line-height:18px;color:var(--text-muted);white-space:nowrap}
+/* Hovering a merge control lights the invoice it will feed. That is what makes
+   a second "merge down" button unnecessary: the pairing is legible from the
+   card you are standing on and from the one that will absorb it, without
+   giving one boundary two controls that disagree about whose name survives.
+   The target is always the previous card, because a fully excluded group is
+   never drawn and never resolves a label. */
+.ovg:has(+ .ovg .ovp__act--merge:hover){border-color:var(--brand-deep);
+  box-shadow:0 0 0 1px var(--brand-deep)}
+.ovp__act--merge:hover{color:var(--brand-deep)}
+.ovg__h{display:flex;flex-direction:column;align-items:center;gap:7px;
+  width:100%;min-width:0;text-align:center}
+/* the index numeral is the signature of this screen, and it is set the same
+   way on the page in the reader — same chip, same ink, so the two views are
+   never in doubt about each other */
+.ovg__id{display:inline-flex;align-items:center;gap:8px}
+.ovg__i{display:inline-grid;place-items:center;min-width:28px;height:22px;padding:0 8px;
+  border-radius:5px;background:var(--interactive);color:var(--brand-deep);
+  font-size:13px;line-height:1;font-weight:700;letter-spacing:-.02em}
+.ovg.is-ask .ovg__i{background:#fbe6bd;color:var(--warning)}
+.ovg.is-ask .ovg__r{color:var(--text-body)}
+.ovg.is-sel .ovg__i{background:var(--brand-deep);color:var(--on-brand)}
+.ovg__r{font-size:12px;line-height:18px;color:var(--text-muted);white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+/* the supplier is what this card is, so it is set as its title — and the grid
+   column, not the name, decides how wide the card gets */
+.ovg__v{width:100%;min-height:36px;font-size:13px;line-height:18px;font-weight:600;color:var(--text);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ovg__p{display:none}
-.ovg__a{order:4;flex-basis:100%;width:0;min-width:100%;margin-top:2px;
-  font-size:11px;line-height:16px;font-weight:600;color:var(--warning);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ovg__pages{display:flex;flex-wrap:wrap;gap:8px}
-.ovp{position:relative;width:104px;padding:0;border:1px solid var(--card-stroke);
-  border-radius:4px;background:var(--surface);overflow:hidden;display:block;
-  transition:border-color var(--dur) var(--ease)}
-.ovp:hover{border-color:var(--brand-deep)}
-.ovp img{display:block;width:100%;height:auto}
-.ovp__blank{display:block;width:100%;aspect-ratio:1/1.414;background:var(--bg-primary)}
-.ovp__n{position:absolute;left:0;bottom:0;padding:1px 5px;
-  font-size:10px;line-height:14px;font-weight:700;
+/* the ask is the route out of this view, not a label: what Overview cannot
+   settle — an unread vendor or number — is settled in the rail, so it opens
+   the row rather than stating a problem and leaving you to find it */
+.ovg__a{margin-top:auto;display:inline-flex;align-items:center;gap:4px;
+  padding:3px 8px;border:none;border-radius:99px;background:var(--warning-wash);
+  box-shadow:inset 0 0 0 1px var(--warning-edge);
+  font-size:11px;line-height:16px;font-weight:700;color:var(--warning);white-space:nowrap;
+  transition:background var(--dur) var(--ease)}
+.ovg__a::after{content:"";position:absolute;inset:-11px -4px}
+.ovg__a{position:relative}
+.ovg__a:hover{background:#ffe9bf}
+
+/* One page. The crop is the point: a whole A4 shrunk to tile width is a grey
+   rectangle, and the two things that identify a bill — the letterhead and the
+   Invoice No. block — both sit in the top half. So the tile shows the top of
+   the page at a legible width instead of the whole page at an illegible one. */
+.ovg__pages{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:100%}
+/* a page is drawn as paper here, the way it is in the reader — lifted off the
+   ground rather than outlined on it. A hairline box made eight invoices read
+   as eight form fields; this makes them read as eight documents. */
+.ovp{position:relative;flex:1 1 118px;min-width:110px;max-width:164px;border-radius:var(--radius);
+  background:var(--surface);
+  box-shadow:0 1px 2px rgba(33,38,60,.10),0 6px 16px rgba(33,38,60,.10);
+  transition:box-shadow var(--dur) var(--ease),transform var(--dur) var(--ease)}
+.ovp:hover,.ovp:focus-within{transform:translateY(-2px);
+  box-shadow:0 0 0 2px var(--brand-deep),0 10px 24px rgba(33,38,60,.16)}
+.ovp__see{position:relative;display:block;width:100%;padding:0;border:none;background:none}
+.ovp__crop{position:relative;display:block;aspect-ratio:1/.79;overflow:hidden;background:var(--surface);
+  border-radius:var(--radius) var(--radius) 0 0}
+.ovp__crop img{display:block;width:100%;height:auto}
+/* faded at the cut, so it reads as the top of a page rather than a short one */
+.ovp__crop::after{content:"";position:absolute;left:0;right:0;bottom:0;height:26px;
+  background:linear-gradient(rgba(255,255,255,0),var(--surface))}
+.ovp__blank{display:grid;place-items:center;width:100%;height:100%;
+  background:var(--bg-primary);color:var(--text-muted);
+  font-size:11px;line-height:15px;letter-spacing:.04em;text-transform:uppercase}
+.ovp__n{position:absolute;left:0;bottom:0;padding:2px 6px;
+  font-size:11px;line-height:14px;font-weight:700;
   background:var(--surface);color:var(--text-muted);border-top-right-radius:4px}
-.ovp.is-excluded{opacity:.4}
+/* a left-out page says so. Opacity alone carried this before, which is colour
+   as the only signal for the one mistake in this flow that loses data quietly. */
+/* bottom-right, beside the page number — at the top it covered the letterhead,
+   which is the one thing the crop exists to show */
+.ovp__out{position:absolute;right:4px;bottom:4px;padding:2px 7px;border-radius:99px;
+  background:var(--text-muted);color:var(--on-brand);
+  font-size:11px;line-height:14px;font-weight:700}
+.ovp.is-excluded .ovp__crop{opacity:.4}
+
+/* the decisions that apply to this page, on this page. The boundary control is
+   always drawn — it is what the view is for. Exclude is rare, so it waits for
+   hover or focus; Put back never does, because escaping a state must not
+   depend on a pointer. */
+/* the bar is 44 tall so the control inside it reaches a full target without a
+   halo that would reach up into the page and steal its clicks */
+.ovp__bar{position:relative;display:flex;align-items:center;justify-content:center;
+  gap:2px;padding:4px 24px 4px 6px;
+  border-top:1px solid var(--stroke);background:var(--bg-primary);min-height:44px;
+  border-radius:0 0 var(--radius) var(--radius)}
+.ovp__act{position:relative;display:inline-flex;align-items:center;gap:5px;height:36px;
+  padding:0 8px;border:none;border-radius:5px;background:none;color:var(--text-muted);
+  font-size:11px;line-height:1;font-weight:600;white-space:nowrap;
+  transition:background var(--dur) var(--ease),color var(--dur) var(--ease)}
+.ovp__act::after{content:"";position:absolute;inset:-4px}
+.ovp__act:hover{background:var(--surface);color:var(--brand-deep);box-shadow:var(--e1)}
+/* pulled out of the centred row entirely, so the boundary control sits on the
+   card's centre line and does not shift when this one appears */
+.ovp__act--out{position:absolute;right:4px;top:50%;transform:translateY(-50%);
+  width:36px;height:36px;padding:0;justify-content:center;
+  opacity:0;transition:opacity var(--dur) var(--ease)}
+.ovp:hover .ovp__act--out,.ovp:focus-within .ovp__act--out{opacity:1}
+.ovp__act--out:hover{color:var(--danger)}
+.ovp__act--back{color:var(--brand-deep)}
+/* page 1 has no boundary to change, and an empty bar under it read as a
+   control that had failed to draw. It states the rule instead. */
+.ovp__rule{display:inline-flex;align-items:center;height:36px;padding:0 8px;
+  font-size:11px;line-height:1;font-weight:600;color:var(--text-muted);opacity:.75}
+
+/* the promise is "the whole packet at once", and on a twenty-page packet the
+   one invoice needing judgement can sit below the fold. This keeps document
+   order — a band out of sequence would be meaningless — and steps through
+   them instead of reordering. */
+.ovjump{position:relative;flex:none;display:inline-flex;align-items:center;gap:6px;height:30px;
+  padding:0 10px;border-radius:var(--radius);border:1px solid var(--warning-edge);
+  background:var(--warning-wash);color:var(--warning);
+  font-size:12px;line-height:1;font-weight:700;white-space:nowrap;
+  transition:background var(--dur) var(--ease)}
+.ovjump::after{content:"";position:absolute;inset:-8px 0}
+.ovjump:hover{background:#ffe9bf}
 
 /* the Read / Overview switch */
 .seg{margin-left:auto;flex:none;display:inline-flex;padding:2px;border-radius:var(--radius);
   background:var(--bg-primary);border:1px solid var(--stroke)}
-.seg__b{height:28px;padding:0 12px;border:none;background:none;border-radius:4px;
+.seg__b{position:relative;height:28px;padding:0 12px;border:none;background:none;border-radius:4px;
   font-size:13px;line-height:1;font-weight:600;color:var(--text-muted);
   transition:background var(--dur) var(--ease),color var(--dur) var(--ease)}
 .seg__b.is-on{background:var(--surface);color:var(--text);box-shadow:var(--e1)}
-.zoom{margin-left:12px}
 
 /* ------------------------------------------- analysing, and detection failed
    Flow 01: the file is read before it can be reviewed, and a detection that
@@ -1394,7 +1563,7 @@ table.grid{width:100%;min-width:1080px;border-collapse:collapse}
         <span class="dz__ico" aria-hidden="true"><svg viewBox="0 0 56 56" width="56" height="56"><use href="#i-dzfile"/></svg></span>
         <div class="dz__txt">
           <p class="dz__h">Drop your files or <button class="link" type="button" id="browse">browse</button></p>
-          <p class="dz__p">Upload up to 100 Bills at once</p>
+          <p class="dz__p">Up to 100 files at a time · 20 pages each</p>
           <p class="dz__p">Supported formats: PDF/JPG/PNG</p>
         </div>
       </div>
@@ -1499,8 +1668,8 @@ const FAILURES = {
     retry:false, ico:'i-warn'
   },
   format:{
-    reason:'Unsupported file type',
-    fix:'We read PDF, JPG and PNG. Export or re-save this file in one of those formats.',
+    reason:'This is not a PDF, JPG or PNG',
+    fix:'Those are the three we can read. Export or re-save the file in one of them, then upload it again.',
     retry:false, ico:'i-warn'
   },
   cancelled:{
@@ -1520,7 +1689,7 @@ const FAILURES = {
   },
   splitfail:{
     reason:'We could not work out where the bills start',
-    fix:'The pages gave us no reliable boundary — no invoice numbers, no change of supplier. Retry, or split the PDF yourself and upload the parts.',
+    fix:'Nothing on the pages told us where one bill ends and the next begins — no invoice numbers, no change of supplier. Retry, or split the PDF yourself and upload the parts.',
     retry:true, ico:'i-scissors'
   },
   network:{
@@ -1788,7 +1957,18 @@ const billsOf = doc => groupsOf(doc).filter(g=>g.kept.length);
 const partsOf = (kept,limit) => {
   const out=[]; for(let i=0;i<kept.length;i+=limit) out.push(kept.slice(i,i+limit)); return out;
 };
-const rangeLabel = ps => !ps.length ? '—' : ps.length===1 ? `Page ${ps[0]}` : `Pages ${ps[0]}–${ps[ps.length-1]}`;
+/* First page to last page read as a solid run, which is a lie the moment a page
+   inside it is left out: an invoice holding pages 5 and 7 was labelled
+   "Pages 5–7" and quietly claimed page 6, the one the operator had just
+   excluded. The runs that are actually there are what gets printed. */
+const rangeLabel = ps => {
+  if(!ps.length) return '—';
+  const runs=[]; let a=ps[0], b=ps[0];
+  ps.slice(1).forEach(n=>{ if(n===b+1) b=n; else { runs.push([a,b]); a=b=n; } });
+  runs.push([a,b]);
+  return (ps.length===1 ? 'Page ' : 'Pages ') +
+    runs.map(([s,e]) => s===e ? `${s}` : `${s}–${e}`).join(', ');
+};
 const needsSplit = () => S.uploads.filter(u=>u.status==='needs_split');
 
 /* outcomes handed to files the user picks themselves, cycled */
@@ -2161,7 +2341,7 @@ function analyse(u){
   u._a = setTimeout(async ()=>{
     if(u.outcome==='splitfail'){
       u.doc = EMPTY_DOC('failed');
-      toast(`We could not find the bill boundaries in ${u.name}`);
+      toast(`We could not tell where the bills start in ${u.name}`);
     } else {
       const bin = PDFBIN.get(u.id);
       if(bin && window.pdfjsLib){
@@ -2224,7 +2404,7 @@ function cancelAll(){
 }
 function retryAll(){
   const r=failed().filter(u=>(FAILURES[u.code]||{}).retry);
-  if(!r.length){ toast('Nothing here can be fixed by retrying','err'); return; }
+  if(!r.length){ toast('Retrying will not help these — each one needs a different file','err'); return; }
   r.forEach(u=>{ u.outcome='ok'; u.status='queued'; u.pct=0; u.code=null; });
   save(); render(); r.forEach(start);
   toast(`Retrying ${r.length} ${r.length===1?'file':'files'}`);
@@ -2312,8 +2492,8 @@ const REVSEL = new Set();
    The empty state is the fix: four numbered steps in the order they
    happen, with the first one carrying the live action. */
 const STEPS = [
-  {h:'Upload your bills', p:'Drop in supplier invoices — PDF, JPG or PNG. Up to 100 bills in one go, scans and phone photos included.'},
-  {h:'AI reads each one',  p:'Vendor, GSTIN, bill number, line items, GST and TDS are pulled off the document. Usually under a minute a bill.'},
+  {h:'Upload your bills', p:'Drop in supplier invoices — PDF, JPG or PNG. Up to 100 files at a time, 20 pages each. Scans and phone photos are fine, and one file can hold several bills.'},
+  {h:'AI reads each one',  p:'Vendor, GSTIN, invoice number, line items, GST and TDS are read off the document. Usually under a minute a bill.'},
   {h:'Review and correct', p:'Every bill lands on this tab. Check what was read against the document beside it and fix anything that is off.'},
   {h:'Sync to Tally',      p:'Approved bills post to Tally with their voucher numbers. Nothing posts until you have approved it.'}
 ];
@@ -2503,7 +2683,7 @@ function splitWhy(u){
   const head = ph==='analysing' ? 'We are reading this file'
              : ph==='failed'    ? 'We could not work out where the bills start'
              : `This PDF looks like ${b} separate bills`;
-  const body = ph==='analysing' ? 'Finding where each bill starts. Nothing is read off it until the boundaries are confirmed.'
+  const body = ph==='analysing' ? 'Finding where each bill starts. Nothing is read off it until you have checked the split.'
              : ph==='failed'    ? 'No invoice numbers, no change of supplier, no break in the layout. Open it to try again, or split the PDF yourself and upload the parts.'
              : `${p} pages, and the supplier changes part-way through. Check where each bill starts before it goes any further — nothing is read off it until you do.`;
   return `<div class="why why--ask">
@@ -2585,7 +2765,7 @@ let SPNAME   = false;     /* the naming controls, open only when wanted */
    vendor or number is exactly where a wrong split hides, so it is treated as
    work rather than as an empty box someone might scroll past. */
 function askOf(doc,g){
-  if(doc.uncertain.some(n=>g.all.includes(n))) return 'Boundary uncertain';
+  if(doc.uncertain.some(n=>g.all.includes(n))) return 'Could go either way';
   const p=doc.pages[g.s-1]||{};
   if(!p.ref) return 'No invoice number';
   if(!p.who) return 'No vendor';
@@ -2623,13 +2803,15 @@ function viewPage(doc,p,idx){
      it, where they read as belonging to it. */
   return `<div class="vpage ${start?'is-start':''} ${unc?'is-maybe':''} ${ex?'is-excluded':''} ${sel?'is-sel':''}" id="vp-${p.n}">
     <div class="vpage__head">
-      ${(!ex && start && idx && idx.get(p.n)) ? `<span class="vpage__i num">${idx.get(p.n)}</span>`:''}
+      ${(!ex && start && idx && idx.get(p.n)) ? `<span class="vpage__i num" role="img"
+        title="Bill ${idx.get(p.n)} starts on this page"
+        aria-label="Bill ${idx.get(p.n)} starts on this page">${idx.get(p.n)}</span>`:''}
       <span class="vpage__no">Page ${p.n}</span>
-      ${unc?`<span class="vpage__flag">Check this boundary</span>`:''}
-      ${ex?`<span class="vpage__flag is-out">${auto?'Blank — excluded for you':'Excluded'}</span>`:''}
+      ${unc?`<span class="vpage__flag">Start of a new bill?</span>`:''}
+      ${ex?`<span class="vpage__flag is-out">${auto?'Blank — left out for you':'Left out'}</span>`:''}
       <button class="vpage__b" type="button" data-sp="${ex?'restore':'exclude'}" data-n="${p.n}"
-        aria-label="${ex?`Restore page ${p.n}`:`Exclude page ${p.n}`}">
-        <span class="ico ico-13"><svg viewBox="0 0 24 24"><use href="#${ex?'i-refresh':'i-ban'}"/></svg></span>${ex?'Restore':'Exclude'}</button>
+        aria-label="${ex?`Put page ${p.n} back`:`Leave page ${p.n} out`}">
+        <span class="ico ico-13"><svg viewBox="0 0 24 24"><use href="#${ex?'i-refresh':'i-ban'}"/></svg></span>${ex?'Put back':'Leave out'}</button>
     </div>
     <div class="vpage__paper">
       ${img ? `<img src="${img}" alt="Page ${p.n}" loading="lazy">` : proxyPaper(p)}
@@ -2652,9 +2834,9 @@ function splitBar(doc,n){
   return `<div class="sbar ${on?'is-on':''} ${!on&&ai?'is-undone':''}">
     <span class="sbar__ln"></span>
     <button class="sbar__b" type="button" data-sp="${on?'merge':'cut'}" data-n="${n}" aria-pressed="${on}"
-      aria-label="${on?`Remove the split before page ${n}`:`Start a new invoice at page ${n}`}">
+      aria-label="${on?`Remove the split before page ${n}`:`Start a new bill at page ${n}`}">
       <span class="ico ico-14"><svg viewBox="0 0 24 24"><use href="#${ico}"/></svg></span>
-      <b>${on?'New invoice':'Split here'}</b>${note?`<span class="sbar__n">· ${note}</span>`:''}
+      <b>${on?'New bill':'Split here'}</b>${note?`<span class="sbar__n">· ${note}</span>`:''}
     </button>
     <span class="sbar__ln"></span>
   </div>`;
@@ -2687,12 +2869,13 @@ function paintSplit(){
      fails says so here, with a way forward. Neither state has anything to
      confirm, so the footer says so rather than offering a dead button. */
   if(doc.phase!=='ready'){
+    $('#splitModal').classList.add('is-bare');
     $('#spTitle').textContent = `Review split — ${u.name}`;
     $('#spBody').innerHTML = doc.phase==='failed'
       ? `<div class="spstate spstate--bad">
            <span class="spstate__ico" aria-hidden="true"><span class="ico ico-20"><svg viewBox="0 0 24 24"><use href="#i-scissors"/></svg></span></span>
-           <p class="spstate__h">We could not work out where the invoices start</p>
-           <p class="spstate__p">The pages gave us no reliable boundary — no invoice numbers, no change of supplier, no break in the layout. Try again, or split the PDF yourself and upload the parts.</p>
+           <p class="spstate__h">We could not work out where the bills start</p>
+           <p class="spstate__p">Nothing on the pages told us where one bill ends and the next begins — no invoice numbers, no change of supplier, no break in the layout. Try again, or split the PDF yourself and upload the parts.</p>
            <div class="spstate__acts">
              <button class="btn btn--solid btn--sm" type="button" data-sp="retry"><span class="ico ico-14"><svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg></span>Try again</button>
            </div>
@@ -2700,10 +2883,10 @@ function paintSplit(){
       : `<div class="spstate">
            <span class="spstate__ico" aria-hidden="true"><span class="ico ico-20"><svg class="spin" viewBox="0 0 24 24"><use href="#i-spinner"/></svg></span></span>
            <p class="spstate__h">Reading pages…</p>
-           <p class="spstate__p">Finding where each invoice starts. Nothing is created until you have seen the boundaries and confirmed them.</p>
+           <p class="spstate__p">Finding where each bill starts. Nothing is created until you have checked the split yourself.</p>
          </div>`;
     $('#spConfirm').disabled = true;
-    $('#spConfirm').textContent = 'Confirm split';
+    $('#spConfirm').textContent = 'Create bills';
     $('#spValid').innerHTML = doc.phase==='failed'
       ? `<span style="color:var(--danger);font-weight:700">Nothing to review yet.</span> Cancel leaves the file exactly as it is.`
       : `Reading the file — this takes a moment on a long one.`;
@@ -2717,6 +2900,7 @@ function paintSplit(){
 
   const idx = new Map(bills.map((g,i)=>[g.s, String(i+1).padStart(2,'0')]));
 
+  $('#splitModal').classList.remove('is-bare');
   $('#spTitle').textContent = `Review split — ${u.name}`;
 
   const asks  = bills.filter(g=>askOf(doc,g));
@@ -2728,34 +2912,123 @@ function paintSplit(){
 
   /* Overview groups the pages by the invoice they belong to, rather than
      laying them out as a flat contact sheet. What is being checked is the
-     grouping, so the grouping is what the overview draws. */
-  const overviewPane = `<div class="ov">${bills.map(g=>{
+     grouping, so the grouping is what the overview draws.
+
+     A split goes wrong at a boundary, and it is caught by recognising a page
+     rather than by reading one. So the tile crops to the top of the sheet,
+     where the letterhead and the Invoice No. block live, and carries the
+     boundary decision itself — finding a page under the wrong supplier and
+     moving it are then the same gesture, instead of a trip back to the
+     reader and a hunt for the right bar. */
+  /* The invoice a merge would feed: the start before this one. There is no
+     merge-down control because it would be this same button under another name
+     — one boundary sits between two invoices, `merge` deletes it, and deleting
+     it from either side produces the identical result. What was missing was not
+     an operation but the referent: "Merge up" never said up into what. */
+  const mergeInto = s => {
+    const prev = [...doc.starts].filter(x=>x<s).sort((a,b)=>b-a)[0];
+    return prev==null ? null : (idx.get(prev) || null);
+  };
+
+  const ovTile = (g,n) => {
+    const ex    = doc.excluded.includes(n);
+    const auto  = doc.auto.includes(n);
+    const img   = VIEWIMGS && VIEWIMGS[n-1];
+    const into  = n===g.s ? mergeInto(n) : null;
+    const prevS = n===g.s ? [...doc.starts].filter(x=>x<n).sort((a,b)=>b-a)[0] : null;
+    const intoWho = into && doc.pages[prevS-1] ? (doc.pages[prevS-1].who||'') : '';
+    /* the two boundary decisions are mutually exclusive by position: the page
+       a band starts on can only be joined to the band above it, and every
+       other page can only be cut away from its own. Page 1 has neither —
+       it always starts an invoice. */
+    const bnd = n===1
+      ? `<span class="ovp__rule" title="Page 1 always starts a bill">Starts a bill</span>`
+      : n===g.s
+        ? `<button class="ovp__act ${into?'ovp__act--merge':''}" type="button" data-sp="merge" data-n="${n}"
+             title="${into?`Join these pages to bill ${into}${intoWho?`, ${intoWho}`:''} — the two become one bill, kept under ${into}`
+                          :'Join this page to the bill above it'}"
+             aria-label="${into?`Merge into bill ${into}`:`Merge page ${n} into the bill above`}"
+             >${into?`Merge into ${into}`:'Merge up'}</button>`
+        : `<button class="ovp__act" type="button" data-sp="cut" data-n="${n}"
+             title="Start a new bill at this page"
+             aria-label="Start a new bill at page ${n}">Split here</button>`;
+    return `<div class="ovp ${ex?'is-excluded':''}">
+      <button class="ovp__see" type="button" data-sp="focus" data-n="${n}"
+        title="Open page ${n} in the reader" aria-label="Open page ${n} in the reader">
+        <span class="ovp__crop">${img?`<img src="${img}" alt="">`
+          :`<span class="ovp__blank">no preview</span>`}</span>
+        <span class="ovp__n num">${n}</span>
+        ${ex?`<span class="ovp__out">${auto?'Blank':'Left out'}</span>`:''}
+      </button>
+      <div class="ovp__bar">${ex
+        ? `<button class="ovp__act ovp__act--back" type="button" data-sp="restore" data-n="${n}"
+             aria-label="Put page ${n} back"><span class="ico ico-12"
+             ><svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg></span>Put back</button>`
+        : `${bnd}<button class="ovp__act ovp__act--out" type="button" data-sp="exclude" data-n="${n}"
+             title="Leave page ${n} out of every bill"
+             aria-label="Leave page ${n} out of every bill"><span class="ico ico-12"
+             ><svg viewBox="0 0 24 24"><use href="#i-ban"/></svg></span></button>`}
+      </div>
+    </div>`;
+  };
+
+  /* every page excluded drew an empty sheet on a grey ground — the one state
+     with nothing to show was the one state that said nothing */
+  const overviewPane = !bills.length
+    ? `<div class="spstate">
+         <span class="spstate__ico" aria-hidden="true"><span class="ico ico-20"
+           ><svg viewBox="0 0 24 24"><use href="#i-files"/></svg></span></span>
+         <p class="spstate__h">Every page is left out</p>
+         <p class="spstate__p">Nothing will be created from this file. Put a page back to start a bill again.</p>
+         <div class="spstate__acts">
+           <button class="btn btn--outline btn--sm" type="button" data-sp="read">Back to the pages</button>
+         </div>
+       </div>`
+    : `<div class="ov">${bills.map(g=>{
     const p=doc.pages[g.s-1]||{}, a=askOf(doc,g);
-    return `<section class="ovg ${a?'is-ask':''} ${SPSEL===g.s?'is-sel':''}" id="ovg-${g.s}">
-      <header class="ovg__h" style="flex-wrap:wrap">
-        <span class="ovg__i num">${idx.get(g.s)}</span>
+    return `<section class="ovg ${a?'is-ask':''} ${SPSEL===g.s?'is-sel':''}" id="ovg-${g.s}"
+      aria-label="Bill ${idx.get(g.s)}, ${p.who?esc(p.who):'vendor not read'}, ${rangeLabel(g.kept)}">
+      <header class="ovg__h">
+        <span class="ovg__id">
+          <span class="ovg__i num">${idx.get(g.s)}</span>
+          <span class="ovg__r num">${esc(p.ref||'—')}</span>
+        </span>
         <span class="ovg__v">${p.who?esc(p.who):'—'}</span>
-        <span class="ovg__r num">${esc(p.ref||'—')}</span>
-        <span class="ovg__p">${rangeLabel(g.kept)}</span>
-        ${a?`<span class="ovg__a">${esc(a)}</span>`:''}
       </header>
-      <div class="ovg__pages">${g.all.map(n=>{
-        const ex=doc.excluded.includes(n), img=VIEWIMGS&&VIEWIMGS[n-1];
-        return `<button class="ovp ${ex?'is-excluded':''}" type="button" data-sp="focus" data-n="${n}"
-          title="Go to page ${n}" aria-label="Go to page ${n}">
-          ${img?`<img src="${img}" alt="">`:`<span class="ovp__blank"></span>`}
-          <span class="ovp__n num">${n}</span></button>`;
-      }).join('')}</div>
+      <div class="ovg__pages">${g.all.map(n=>ovTile(g,n)).join('')}</div>
+      ${a?`<button class="ovg__a" type="button" data-sp="open" data-n="${g.s}"
+            title="Settle this in the list">${esc(a)}<span class="ico ico-12"
+            ><svg viewBox="0 0 24 24"><use href="#i-chev-r"/></svg></span></button>`:''}
     </section>`;
-  }).join('')}</div>`;
+  }).join('')}${(()=>{
+    /* Leaving out the only page of an invoice deletes the invoice, and the page
+       went with it — off the sheet, restorable only by switching to the reader.
+       A page that belongs to no invoice is still a page in this file, so it
+       keeps a place here, and the way back is where the way out was. */
+    const orphans = doc.pages.map(p=>p.n).filter(n=>!bills.some(g=>g.all.includes(n)));
+    return !orphans.length ? '' : `<section class="ovg ovg--out" aria-label="Pages not in any bill">
+      <header class="ovg__h"><span class="ovg__k">Not in any bill</span></header>
+      <div class="ovg__pages">${orphans.map(n=>ovTile({s:null},n)).join('')}</div>
+    </section>`;
+  })()}</div>`;
 
   const viewer = `<div class="spv__doc">
     <div class="spv__bar">
       <span class="filechip" aria-hidden="true"><span class="ico ico-16"><svg viewBox="0 0 16 16"><use href="#i-pdf"/></svg></span></span>
       <div style="min-width:0">
         <p class="spv__name">${esc(u.name)}</p>
-        <p class="spv__sub">${nPages} pages · ${bills.length} ${bills.length===1?'invoice':'invoices'} found${nEx?` · ${nEx} left out`:''}</p>
+        <!-- the toolbar describes the document; the rail describes the split.
+             It used to say "7 invoices found" 300px from a headline reading
+             "7 invoices from 8 pages", above a button reading "create 7
+             invoices" — one number, stated three times in one dialog. -->
+        <p class="spv__sub">${nPages} ${nPages===1?'page':'pages'}${nEx?` · ${nEx} left out`:''}</p>
       </div>
+      ${SPVIEW==='over' && asks.length ? `<button class="ovjump" type="button" data-sp="nextask"
+        title="Go to the next bill that is waiting on you"
+        aria-label="Go to the next of ${asks.length} bills waiting on you">
+        <span class="ico ico-14"><svg viewBox="0 0 24 24"><use href="#i-warn"/></svg></span>
+        ${asks.length} waiting on you
+        <span class="ico ico-12"><svg viewBox="0 0 24 24"><use href="#i-chev-r"/></svg></span></button>` : ''}
       <div class="seg" role="group" aria-label="View">
         <button class="seg__b ${SPVIEW==='read'?'is-on':''}" type="button" data-sp="read" aria-pressed="${SPVIEW==='read'}">Read</button>
         <button class="seg__b ${SPVIEW==='over'?'is-on':''}" type="button" data-sp="over" aria-pressed="${SPVIEW==='over'}">Overview</button>
@@ -2782,9 +3055,9 @@ function paintSplit(){
     const unc=doc.uncertain.filter(n=>g.all.includes(n));
     return `<div class="iedit">
       ${unc.map(n=>`<div class="iask">
-        <p class="iask__q"><strong>Page ${n}</strong> could belong here, or start the next invoice. The document does not say.</p>
+        <p class="iask__q"><strong>Page ${n}</strong> could belong to this bill, or start the next one. The document does not say.</p>
         <div class="iask__acts">
-          <button class="btn btn--solid btn--xs" type="button" data-sp="new" data-n="${n}"><span class="ico ico-12"><svg viewBox="0 0 24 24"><use href="#i-scissors"/></svg></span>It starts a new one</button>
+          <button class="btn btn--solid btn--xs" type="button" data-sp="new" data-n="${n}"><span class="ico ico-12"><svg viewBox="0 0 24 24"><use href="#i-scissors"/></svg></span>It starts a new bill</button>
           <button class="btn btn--outline btn--xs" type="button" data-sp="same" data-n="${n}">It belongs here</button>
         </div></div>`).join('')}
       <div class="iedit__fields">
@@ -2797,22 +3070,32 @@ function paintSplit(){
           <input class="fld__i" id="r-${g.s}" data-edit="ref" data-n="${g.s}" value="${esc(p.ref||'')}" placeholder="Not read">
         </div>
       </div>
-      <p class="iedit__file"><span class="iedit__lk">Lands as</span>${esc(outName(doc,g.s))}</p>
-      ${parts.length>1?`<p class="iedit__note">${g.kept.length} pages is over the ${doc.limit}-page limit, so this is created as ${parts.length} ordered parts of the same invoice.</p>`:''}
-      ${g.s===1?`<p class="iedit__note">Page 1 always starts an invoice.</p>`:''}
+      <p class="iedit__file"><span class="iedit__lk">Saves as</span>${esc(outName(doc,g.s))}</p>
+      ${parts.length>1?`<p class="iedit__note">${g.kept.length} pages is over the ${doc.limit}-page limit, so this is created as ${parts.length} ordered parts of the same bill.</p>`:''}
+      ${g.s===1?`<p class="iedit__note">Page 1 always starts a bill.</p>`:''}
     </div>`;
   };
 
   const line = (g,open) => {
     const p=doc.pages[g.s-1]||{}, a=askOf(doc,g);
-    return `<div class="irow ${a?'is-ask':''} ${open?'is-open':''} ${SPSEL===g.s?'is-sel':''}" id="bgrp-${gs.indexOf(g)}">
+    return `<div class="irow ${a?'is-ask':''} ${open?'is-open':''} ${SPSEL===g.s?'is-sel':''}"
+      id="bgrp-${gs.indexOf(g)}" data-start="${g.s}">
       <button class="irow__hit" type="button" data-sp="open" data-n="${g.s}" aria-expanded="${open}">
         <span class="irow__i num">${idx.get(g.s)}</span>
-        <span class="irow__p num">${rangeLabel(g.kept).replace('Pages ','pp ').replace('Page ','p ')}</span>
-        <span class="irow__v ${p.who?'':'is-none'}">${p.who?esc(p.who):'—'}</span>
-        ${a ? `<span class="irow__a">${esc(a)}</span>`
-            : `<span class="irow__end"><span class="irow__r num">${esc(p.ref||'—')}</span>
-                 <span class="ico ico-12 irow__c"><svg viewBox="0 0 24 24"><use href="#i-chev-d"/></svg></span></span>`}
+        <span class="irow__body">
+          <span class="irow__v ${p.who?'':'is-none'}"${p.who?` title="${esc(p.who)}"`:''}
+            >${p.who?esc(p.who):'Vendor not read'}</span>
+          <span class="irow__meta">
+            ${a ? `<span class="irow__a">${esc(a)}</span>`
+                : `<span class="irow__r num">${esc(p.ref||'No number')}</span>`}
+            <span class="irow__dot" aria-hidden="true">·</span>
+            <!-- "p 1" and "pp 5–6" were compression for a 40px column that no
+                 longer exists. The meta line has the room to say it plainly,
+                 and pp. is a citation convention, not an accounting one. -->
+            <span class="irow__p">${rangeLabel(g.kept)}</span>
+          </span>
+        </span>
+        <span class="ico ico-14 irow__c"><svg viewBox="0 0 24 24"><use href="#i-chev-d"/></svg></span>
       </button>
       ${open?editor(g):''}
     </div>`;
@@ -2828,19 +3111,19 @@ function paintSplit(){
         <span class="rail2__k">Current split</span>
         <span class="rail2__pill">AI proposed</span>
       </div>
-      <p class="rail2__t">${bills.length} ${bills.length===1?'invoice':'invoices'} from ${nPages} pages</p>
+      <p class="rail2__t">${bills.length} ${bills.length===1?'bill':'bills'} from ${nPages} pages</p>
       <div class="naming">
         <button class="naming__b" type="button" data-sp="naming" aria-expanded="${SPNAME}">
-          <span class="naming__t">Files land as <strong>${esc(fileSafe(doc.packet)||'document')}-VEN3-number.pdf</strong></span>
+          <span class="naming__t">Each bill saves as <strong>${esc(fileSafe(doc.packet)||'document')}-VEN3-number.pdf</strong></span>
           <span class="ico ico-12 naming__c"><svg viewBox="0 0 24 24"><use href="#i-chev-d"/></svg></span>
         </button>
         ${SPNAME?`<div class="naming__body">
           <div class="fld">
-            <label class="fld__k" for="packet">Packet name</label>
+            <label class="fld__k" for="packet">Filename prefix</label>
             <input class="fld__i" id="packet" data-edit="packet" value="${esc(doc.packet)}">
           </div>
           <div class="fld">
-            <label class="fld__k" for="bulkbase">Number the unnumbered</label>
+            <label class="fld__k" for="bulkbase">Fill in missing numbers</label>
             <div class="bulk">
               <input class="fld__i" id="bulkbase" data-edit="bulk" value="${esc(doc.bulk||'')}" placeholder="e.g. Acme-Aug">
               <button class="btn btn--outline btn--sm" type="button" data-sp="numberall">Apply</button>
@@ -2851,8 +3134,8 @@ function paintSplit(){
     </div>
     <div class="rail2__list">
       ${bills.length
-        ? group('Needs a look','grp--ask',asks,true) + group('Ready','grp--ok',ready,false)
-        : '<p class="split-empty">Every page is left out. Put one back to create an invoice.</p>'}
+        ? group('Waiting on you','grp--ask',asks,true) + group('Ready','grp--ok',ready,false)
+        : '<p class="split-empty">Every page is left out. Put one back to create a bill.</p>'}
     </div>
   </aside>`;
 
@@ -2868,13 +3151,13 @@ function paintSplit(){
   const blocked = asks.length>0 || bills.length===0;
   $('#spConfirm').disabled = blocked;
   $('#spConfirm').textContent = bills.length
-    ? `Confirm split · create ${bills.length} ${bills.length===1?'invoice':'invoices'}`
-    : 'Confirm split';
+    ? `Create ${bills.length} ${bills.length===1?'bill':'bills'}`
+    : 'Create bills';
   $('#spValid').innerHTML = asks.length
-    ? `<span style="color:var(--warning);font-weight:700">${asks.length} ${asks.length===1?'invoice needs':'invoices need'} a look.</span> Settle ${asks.length===1?'it':'them'} at the top of the list.`
+    ? `<span style="color:var(--warning);font-weight:700">${asks.length} ${asks.length===1?'bill is':'bills are'} waiting on you.</span> Settle ${asks.length===1?'it':'them'} at the top of the list.`
     : bills.length===0
-      ? `<span style="color:var(--danger);font-weight:700">No pages left in an invoice.</span> Restore a page to continue.`
-      : `All ${nPages} pages accounted for. Nothing is created until you confirm.`;
+      ? `<span style="color:var(--danger);font-weight:700">No pages left in a bill.</span> Put a page back to continue.`
+      : `All ${nPages} pages accounted for. Nothing is created yet.`;
 }
 
 function editSplit(act,n){
@@ -2898,9 +3181,25 @@ function editSplit(act,n){
   if(act==='open'){
     SPSEL=n;
     SPOPEN.has(n) ? SPOPEN.delete(n) : SPOPEN.add(n);
-    paintSplit(); scrollToPage(n); return;
+    paintSplit(); scrollToPage(n);
+    /* opened from the overview, the row it opens is 400px away and off-screen
+       — a route that quietly does something you cannot see is worse than none */
+    const row=$(`.irow[data-start="${n}"]`);
+    if(row) row.scrollIntoView({block:'nearest'});
+    return;
   }
   if(act==='focus'){ SPSEL=startOf(d,n); SPVIEW='read'; paintSplit(); scrollToPage(n); return; }
+  /* Document order is itself part of the check — a band out of sequence would
+     mean nothing — so the questionable ones are not floated to the top the way
+     the rail floats them. They are stepped through instead, and it wraps, so
+     the control keeps working as they get settled. */
+  if(act==='nextask'){
+    const q=billsOf(d).filter(g=>askOf(d,g));
+    if(!q.length) return;
+    const cur=q.findIndex(g=>g.s===SPSEL);
+    const next=q[(cur+1)%q.length];
+    SPSEL=next.s; paintSplit(); scrollToBand(next.s); return;
+  }
   if(act==='naming'){ SPNAME=!SPNAME; paintSplit(); return; }
   if(act==='read' || act==='over'){ SPVIEW = act==='read'?'read':'over'; paintSplit(); return; }
   if(act==='fit'){ SPZOOM='fit'; paintSplit(); return; }
@@ -2919,7 +3218,7 @@ function editSplit(act,n){
     billsOf(d).forEach((g,i)=>{
       const pg=d.pages[g.s-1]; if(pg && !pg.ref) pg.ref=`${base}-${i+1}`;
     });
-    toast('Numbered every invoice that had none');
+    toast('Numbered every bill that had none');
   }
   save(); paintSplit();
 }
@@ -2954,6 +3253,12 @@ function scrollToPage(n){
   if(!el||!sc) return;
   sc.scrollTop = el.offsetTop - sc.offsetTop - 8;
 }
+/* the same move in the overview, where the unit is a band and not a page */
+function scrollToBand(s){
+  const el=$('#ovg-'+s), sc=$('#spScroll');
+  if(!el||!sc) return;
+  sc.scrollTop = Math.max(0, el.offsetTop - sc.offsetTop - 8);
+}
 
 function editField(kind,n,val){
   const u=S.uploads.find(x=>x.id===SP); if(!u) return;
@@ -2970,7 +3275,7 @@ function editField(kind,n,val){
   groupsOf(d).forEach((g,i)=>{
     if(!g.kept.length) return;
     const card=$('#bgrp-'+i), f = card && $('.iedit__file', card);
-    if(f) f.innerHTML = `<span class="iedit__lk">Lands as</span>${esc(outName(d,g.s))}`;
+    if(f) f.innerHTML = `<span class="iedit__lk">Saves as</span>${esc(outName(d,g.s))}`;
   });
 }
 
